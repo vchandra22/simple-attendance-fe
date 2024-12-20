@@ -49,7 +49,7 @@ const AttendanceTable = () => {
 
     useEffect(() => {
         fetchData(pagination.page);
-    }, [pagination.page, pagination.size]);
+    }, [pagination.page, pagination.size, attendances]);
 
     const handlePageChange = (newPage) => {
         if (newPage >= 1 && newPage <= pagination.totalPages) {
