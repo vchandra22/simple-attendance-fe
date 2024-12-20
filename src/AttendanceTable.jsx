@@ -15,37 +15,37 @@ const AttendanceTable = () => {
 
     // Fetch data with page parameter
     const fetchData = async (page = pagination.page) => {
-    try {
-        const response = await axios.get(
-            `http://localhost:8088/api/v1/attendances?page=${page}&size=${pagination.size}`
-        );
+        try {
+            const response = await axios.get(
+                `http://localhost:8088/api/v1/attendances?page=${page}&size=${pagination.size}`
+            );
 
-        const data = response.data;
-        if (data && Array.isArray(data.data)) {
-            setAttendances(data.data);
-            setPagination({
-                page: data.paging.page,
-                size: data.paging.size,
-                totalPages: data.paging.totalPage,
-                totalItems: data.paging.totalItems,
-            });
-            setPaginatedData(data.data);
-        } else {
-            setError("Invalid data format");
+            const data = response.data;
+            if (data && Array.isArray(data.data)) {
+                setAttendances(data.data);
+                setPagination({
+                    page: data.paging.page,
+                    size: data.paging.size,
+                    totalPages: data.paging.totalPage,
+                    totalItems: data.paging.totalItems,
+                });
+                setPaginatedData(data.data);
+            } else {
+                setError("Invalid data format");
+            }
+            setLoading(false);
+        } catch (err) {
+            console.error("Error fetching attendance data:", err);
+            if (err.response) {
+                setError(`Error: ${err.response.data.message || "Failed to fetch attendance data"}`);
+            } else if (err.request) {
+                setError("Error: No response received from the server.");
+            } else {
+                setError(`Error: ${err.message}`);
+            }
+            setLoading(false);
         }
-        setLoading(false);
-    } catch (err) {
-        console.error("Error fetching attendance data:", err);
-        if (err.response) {
-            setError(`Error: ${err.response.data.message || "Failed to fetch attendance data"}`);
-        } else if (err.request) {
-            setError("Error: No response received from the server.");
-        } else {
-            setError(`Error: ${err.message}`);
-        }
-        setLoading(false);
-    }
-};
+    };
 
     useEffect(() => {
         fetchData(pagination.page);
@@ -57,6 +57,18 @@ const AttendanceTable = () => {
                 ...prevState,
                 page: newPage,
             }));
+        }
+    };
+
+    const handleDelete = async (id) => {
+        if (window.confirm("Are you sure you want to delete this attendance record?")) {
+            try {
+                await axios.delete(`http://localhost:8088/api/v1/attendances/${id}`);
+                fetchData(pagination.page);
+            } catch (err) {
+                console.error("Error deleting attendance:", err);
+                setError("Failed to delete attendance record.");
+            }
         }
     };
 
@@ -84,6 +96,7 @@ const AttendanceTable = () => {
                         <th style={{ border: "1px solid #ddd", padding: "8px" }}>Employee Name</th>
                         <th style={{ border: "1px solid #ddd", padding: "8px" }}>Date</th>
                         <th style={{ border: "1px solid #ddd", padding: "8px" }}>Status</th>
+                        <th style={{ border: "1px solid #ddd", padding: "8px" }}>Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -100,6 +113,14 @@ const AttendanceTable = () => {
                             </td>
                             <td style={{ border: "1px solid #ddd", padding: "8px" }}>
                                 {attendance.status}
+                            </td>
+                            <td style={{ border: "1px solid #ddd", padding: "8px" }}>
+                                <a href="#" style={{ color: "blue" }}>Edit</a> | <button
+                                    style={{ color: "red", background: "none", border: "none", cursor: "pointer" }}
+                                    onClick={() => handleDelete(attendance.id)}
+                                >
+                                    Delete
+                                </button>
                             </td>
                         </tr>
                     ))}
